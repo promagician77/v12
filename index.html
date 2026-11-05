@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>V12 Ops Console</title>
+<style>:root{color-scheme:light dark}*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}img,svg,video{max-width:100%;height:auto}button,input,select,textarea{font:inherit;color:inherit}table{border-collapse:collapse}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface2: #f5f5f4;
+  --border: #e7e5e4;
+  --fg: #1c1917;
+  --fg2: #57534e;
+  --fg3: #a8a29e;
+  --accent: #2563eb;
+  --accent-bg: #eff6ff;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0a09;
+    --surface: #1c1917;
+    --surface2: #292524;
+    --border: #44403c;
+    --fg: #fafaf9;
+    --fg2: #a8a29e;
+    --fg3: #78716c;
+    --accent: #60a5fa;
+    --accent-bg: #1e293b;
+    --green: #4ade80;
+    --green-bg: #14532d;
+    --amber: #fbbf24;
+    --amber-bg: #451a03;
+    --red: #f87171;
+    --red-bg: #450a0a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0a09;
+  --surface: #1c1917;
+  --surface2: #292524;
+  --border: #44403c;
+  --fg: #fafaf9;
+  --fg2: #a8a29e;
+  --fg3: #78716c;
+  --accent: #60a5fa;
+  --accent-bg: #1e293b;
+  --green: #4ade80;
+  --green-bg: #14532d;
+  --amber: #fbbf24;
+  --amber-bg: #451a03;
+  --red: #f87171;
+  --red-bg: #450a0a;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+.header {
+  padding: 20px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.header .meta {
+  font-size: 12px;
+  color: var(--fg2);
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--sans);
+  transition: color 0.15s;
+}
+.tab:hover { color: var(--fg); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg2);
+  margin-bottom: 12px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--fg2);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+.mono { font-family: var(--mono); font-size: 12px; }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--mono);
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--accent-bg); color: var(--accent); }
+.pre-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.arrow { color: var(--fg3); margin: 8px 0; text-align: center; font-size: 18px; }
+.scroll { overflow-x: auto; }
+.scroll table { min-width: 580px; }
+.step-list { list-style: none; counter-reset: steps; }
+.step-list li {
+  counter-increment: steps;
+  padding: 10px 0 10px 36px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+.step-list li:last-child { border-bottom: none; }
+.step-list li::before {
+  content: counter(steps);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 24px;
+  height: 24px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+.step-list .day {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.step-list .task { color: var(--fg); margin-top: 2px; }
+.step-list .detail { color: var(--fg2); font-size: 12px; margin-top: 2px; }
+.info-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.info-item {
+  flex: 1;
+  min-width: 140px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.info-item .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg3);
+  font-weight: 500;
+}
+.info-item .value {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.highlight-red { border-left: 3px solid var(--red); padding-left: 12px; }
+.highlight-green { border-left: 3px solid var(--green); padding-left: 12px; }
+@media (max-width: 500px) {
+  .info-row { flex-direction: column; }
+  .tabs { gap: 0; }
+  .tab { padding: 8px 10px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>V12 Client Ops Console</h1>
+  <div class="meta">org: v12-integrations &middot; env: production &middot; clients: 14 active &middot; last sync: 2026-11-05 09:12:04 EST</div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button class="tab active" onclick="showTab('triage')" role="tab">Email Triage</button>
+  <button class="tab" onclick="showTab('commits')" role="tab">Commitments</button>
+  <button class="tab" onclick="showTab('breaks')" role="tab">Breaks</button>
+  <button class="tab" onclick="showTab('health')" role="tab">Client Health</button>
+  <button class="tab" onclick="showTab('install')" role="tab">Install Week</button>
+</div>
+
+<div id="tab-triage">
+  <div class="info-row">
+    <div class="info-item">
+      <div class="label">Processed Today</div>
+      <div class="value">47</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Commitments Found</div>
+      <div class="value">12</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Drafts Queued</div>
+      <div class="value">3</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Extraction Errors</div>
+      <div class="value" style="color:var(--amber)">1</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Recent Batch &mdash; Whitfield Partners LLP</h2>
+    <div class="scroll">
+    <table>
+      <tr><th>Thread ID</th><th>From</th><th>Subject</th><th>Commitments</th><th>Status</th></tr>
+      <tr>
+        <td class="mono">18d4a2f...c31</td>
+        <td>R. Whitfield</td>
+        <td>Re: Fwd: Martinez depo scheduling</td>
+        <td class="mono">2</td>
+        <td><span class="badge badge-green">extracted</span></td>
+      </tr>
+      <tr>
+        <td class="mono">18d4a1b...e07</td>
+        <td>K. Okafor</td>
+        <td>Medical records request - Chen</td>
+        <td class="mono">1</td>
+        <td><span class="badge badge-green">extracted</span></td>
+      </tr>
+      <tr>
+        <td class="mono">18d49f3...a44</td>
+        <td>Court Clerk</td>
+        <td>Fwd: Fwd: Status conference - Alvarez</td>
+        <td class="mono">0</td>
+        <td><span class="badge badge-amber">retrying</span></td>
+      </tr>
+      <tr>
+        <td class="mono">18d49e8...b92</td>
+        <td>M. Sandoval</td>
+        <td>Re: Demand letter review</td>
+        <td class="mono">3</td>
+        <td><span class="badge badge-green">extracted</span></td>
+      </tr>
+      <tr>
+        <td class="mono">18d49d1...f18</td>
+        <td>T. Reeves (opposing)</td>
+        <td>Settlement counter - Martinez</td>
+        <td class="mono">1</td>
+        <td><span class="badge badge-green">extracted</span></td>
+      </tr>
+      <tr>
+        <td class="mono">18d498c...d55</td>
+        <td>noreply@lexisnexis.com</td>
+        <td>Your Shepard's Alert</td>
+        <td class="mono">0</td>
+        <td><span class="badge badge-blue">skipped</span></td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card highlight-red">
+    <h2>Retry Detail &mdash; 18d49f3...a44</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:8px">Doubly-forwarded email. HTML nesting depth exceeded extraction threshold. Stripping quoted blocks and retrying.</p>
+    <div class="pre-block">attempt 1: { "commitments": [] }    // raw HTML, quoted blocks intact
+attempt 2: stripping &lt;blockquote&gt; + &lt;div class="gmail_quote"&gt;
+           re-extracting from 1,247 chars (was 8,401)
+           pending...</div>
+  </div>
+</div>
+
+<div id="tab-commits" hidden>
+  <div class="info-row">
+    <div class="info-item">
+      <div class="label">Open</div>
+      <div class="value">8</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Due This Week</div>
+      <div class="value" style="color:var(--amber)">3</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Overdue</div>
+      <div class="value" style="color:var(--red)">1</div>
+    </div>
+    <div class="info-item">
+      <div class="label">Closed (7d)</div>
+      <div class="value">19</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Active Commitments &mdash; Whitfield Partners</h2>
+    <div class="scroll">
+    <table>
+      <tr><th>ID</th><th>Who</th><th>Owes</th><th>To</th><th>Due</th><th>Source</th><th>Status</th></tr>
+      <tr>
+        <td class="mono">C-0892</td>
+        <td>R. Whitfield</td>
+        <td>File Martinez depo notice</td>
+        <td>Court</td>
+        <td class="mono">2026-11-07</td>
+        <td class="mono">email</td>
+        <td><span class="badge badge-amber">due fri</span></td>
+      </tr>
+      <tr>
+        <td class="mono">C-0891</td>
+        <td>K. Okafor</td>
+        <td>Request Chen med records from St. Luke's</td>
+        <td>Client</td>
+        <td class="mono">2026-11-06</td>
+        <td class="mono">email</td>
+        <td><span class="badge badge-amber">due thu</span></td>
+      </tr>
+      <tr>
+        <td class="mono">C-0887</td>
+        <td>R. Whitfield</td>
+        <td>Review and return demand letter draft</td>
+        <td>M. Sandoval</td>
+        <td class="mono">2026-11-08</td>
+        <td class="mono">email</td>
+        <td><span class="badge badge-green">open</span></td>
+      </tr>
+      <tr>
+        <td class="mono">C-0884</td>
+        <td>K. Okafor</td>
+        <td>Call Dr. Patel re: IME availability</td>
+        <td>R. Whitfield</td>
+        <td class="mono">2026-11-04</td>
+        <td class="mono">call</td>
+        <td><span class="badge badge-red">overdue</span></td>
+      </tr>
+      <tr>
+        <td class="mono">C-0878</td>
+        <td>R. Whitfield</td>
+        <td>Send settlement counter to T. Reeves</td>
+        <td>Client</td>
+        <td class="mono">2026-11-12</td>
+        <td class="mono">email</td>
+        <td><span class="badge badge-green">open</span></td>
+      </tr>
+      <tr style="background:var(--surface2)">
+        <td class="mono">C-0876</td>
+        <td>R. Whitfield</td>
+        <td>Follow up with Martinez on settlement authority</td>
+        <td>Client</td>
+        <td class="mono">2026-11-10</td>
+        <td class="mono" style="color:var(--accent);font-weight:500">manual</td>
+        <td><span class="badge badge-green">open</span></td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--surface2)">
+    <p style="font-size:12px;color:var(--fg2)"><strong style="color:var(--fg)">C-0876</strong> was entered manually via the forwarding address. Source: hallway conversation, no email or call record. The system caught it because the team uses <span class="mono">commit@whitfield.v12sys.com</span> to log off-system commitments in five seconds.</p>
+  </div>
+</div>
+
+<div id="tab-breaks" hidden>
+  <div class="card">
+    <h2>The Forwarded-Email Problem</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:16px">Claude returned empty commitment arrays on forwarded emails. The original message was buried inside nested quoted HTML and the extraction prompt could not reach it. This is the failure mode from the screening answer.</p>
+  </div>
+
+  <div class="card">
+    <h2>Step 1: Raw Input (8,401 chars)</h2>
+    <div class="pre-block">&lt;div class="gmail_quote"&gt;
+  &lt;div dir="ltr"&gt;---------- Forwarded message ----------&lt;/div&gt;
+  &lt;div class="gmail_attr"&gt;From: Court Clerk &lt;clerk@superiorcourt.gov&gt;&lt;/div&gt;
+  &lt;div class="gmail_quote"&gt;
+    &lt;div dir="ltr"&gt;---------- Forwarded message ----------&lt;/div&gt;
+    &lt;div class="gmail_attr"&gt;From: Judge Ramirez Chambers&lt;/div&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;Status conference for Alvarez v. Metro Transit is set for
+      November 14 at 10:00 AM. Counsel for both parties must file
+      updated case status reports by November 11.&lt;/p&gt;
+      &lt;p&gt;Failure to appear may result in sanctions.&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</div>
+  </div>
+
+  <div class="arrow">&#8595;</div>
+
+  <div class="card highlight-red">
+    <h2>Step 2: Claude Extraction (attempt 1)</h2>
+    <div class="pre-block">POST /v1/messages
+model: claude-sonnet-5-5
+system: "Extract commitments from this email..."
+content: [raw HTML above, 8,401 chars]
+
+Response:
+{
+  "commitments": []    // empty - the real message is inside
+}                      // nested &lt;blockquote&gt; + &lt;div class="gmail_quote"&gt;
+                       // and the prompt focused on the forwarding wrapper</div>
+  </div>
+
+  <div class="arrow">&#8595;</div>
+
+  <div class="card highlight-green">
+    <h2>Step 3: After HTML Stripping (1,247 chars)</h2>
+    <div class="pre-block">// stripQuotedBlocks() removes:
+//   &lt;blockquote&gt; wrappers (preserves content)
+//   &lt;div class="gmail_quote"&gt; wrappers
+//   "---------- Forwarded message ----------" lines
+//   Empty attribution divs
+// Output: flat text, no nesting
+
+"Status conference for Alvarez v. Metro Transit is set for
+November 14 at 10:00 AM. Counsel for both parties must file
+updated case status reports by November 11.
+Failure to appear may result in sanctions."</div>
+  </div>
+
+  <div class="arrow">&#8595;</div>
+
+  <div class="card highlight-green">
+    <h2>Step 4: Claude Extraction (attempt 2)</h2>
+    <div class="pre-block">Response:
+{
+  "commitments": [
+    {
+      "who": "R. Whitfield",
+      "action": "File updated case status report for Alvarez v. Metro Transit",
+      "to": "Court",
+      "due": "2026-11-11",
+      "confidence": 0.94
+    },
+    {
+      "who": "R. Whitfield",
+      "action": "Appear at status conference - Alvarez v. Metro Transit",
+      "to": "Court",
+      "due": "2026-11-14T10:00",
+      "confidence": 0.98
+    }
+  ]
+}</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>The Watchdog</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:12px">A time-driven trigger runs every 30 minutes and checks the last N extractions. If ten consecutive emails return zero commitments, it sends an alert. Zero is the failure mode, not an error: the script runs, the API returns 200, the JSON parses, and the array is empty. Without the watchdog, nobody knows.</p>
+    <div class="pre-block">function watchdog() {
+  const recent = getRecentExtractions(10);
+  const allZero = recent.every(r => r.commitments.length === 0);
+  if (allZero && recent.length === 10) {
+    sendAlert({
+      type: "extraction_drift",
+      message: "10 consecutive zero-commitment extractions",
+      lastThreadIds: recent.map(r => r.threadId),
+      suggestion: "Check for forwarded/nested HTML in recent threads"
+    });
+  }
+}</div>
+  </div>
+</div>
+
+<div id="tab-health" hidden>
+  <div class="card">
+    <h2>Client Install Health</h2>
+    <div class="scroll">
+    <table>
+      <tr><th>Client</th><th>Platform</th><th>Template</th><th>Last Trigger</th><th>OAuth</th><th>Status</th></tr>
+      <tr>
+        <td>Whitfield Partners LLP</td>
+        <td class="mono">gws</td>
+        <td class="mono">v2.4.1</td>
+        <td class="mono">09:12 today</td>
+        <td><span class="badge badge-green">valid</span></td>
+        <td><span class="badge badge-green">healthy</span></td>
+      </tr>
+      <tr>
+        <td>Clearwater Adjusting</td>
+        <td class="mono">gws</td>
+        <td class="mono">v2.4.1</td>
+        <td class="mono">09:10 today</td>
+        <td><span class="badge badge-green">valid</span></td>
+        <td><span class="badge badge-green">healthy</span></td>
+      </tr>
+      <tr>
+        <td>Garrison Insurance</td>
+        <td class="mono">m365</td>
+        <td class="mono">v2.4.0</td>
+        <td class="mono">09:08 today</td>
+        <td><span class="badge badge-green">valid</span></td>
+        <td><span class="badge badge-amber">1 ver behind</span></td>
+      </tr>
+      <tr>
+        <td>Burke & Callahan</td>
+        <td class="mono">gws</td>
+        <td class="mono">v2.3.2</td>
+        <td class="mono">08:45 today</td>
+        <td><span class="badge badge-green">valid</span></td>
+        <td><span class="badge badge-amber">2 ver behind</span></td>
+      </tr>
+      <tr>
+        <td>Meridian Claims Group</td>
+        <td class="mono">gws</td>
+        <td class="mono">v2.4.1</td>
+        <td class="mono">yesterday 17:02</td>
+        <td><span class="badge badge-amber">expires 3d</span></td>
+        <td><span class="badge badge-amber">check oauth</span></td>
+      </tr>
+      <tr>
+        <td>Trask Adjusters</td>
+        <td class="mono">m365</td>
+        <td class="mono">v2.2.0</td>
+        <td class="mono">2026-11-02</td>
+        <td><span class="badge badge-red">expired</span></td>
+        <td><span class="badge badge-red">trigger stopped</span></td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card highlight-red">
+    <h2>Alert &mdash; Trask Adjusters</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:12px">Last trigger execution: 3 days ago. OAuth token expired 2026-11-03. The trigger ran, the UrlFetch call to Claude returned 401 (the Workspace token was used as a Bearer header), the script logged the error to Properties, and the trigger silently stopped retrying.</p>
+    <div class="pre-block">Resolution:
+1. Re-authorize via /authorize endpoint on Trask's domain
+2. Verify trigger is re-enabled in Apps Script dashboard
+3. Run backfill for 2026-11-02 through today (est. 84 emails)
+4. Check zero-commitment watchdog cleared after backfill</div>
+  </div>
+
+  <div class="card">
+    <h2>Template Version Drift</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:12px">Current template: v2.4.1. Clients on older versions miss the HTML-stripping fix (v2.4.0) and the watchdog trigger (v2.3.0). Each client runs their own copy of the script. Updates require accessing each client's Workspace and redeploying.</p>
+    <div class="scroll">
+    <table>
+      <tr><th>Version</th><th>Change</th><th>Clients On</th></tr>
+      <tr><td class="mono">v2.4.1</td><td>Watchdog sensitivity tuned (10 -> 10, 30-min window)</td><td class="mono">3</td></tr>
+      <tr><td class="mono">v2.4.0</td><td>HTML stripping for forwarded emails</td><td class="mono">1</td></tr>
+      <tr><td class="mono">v2.3.2</td><td>OAuth refresh error handling</td><td class="mono">1</td></tr>
+      <tr><td class="mono">v2.2.0</td><td>Initial M365 Power Automate support</td><td class="mono">1</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div id="tab-install" hidden>
+  <div class="card">
+    <h2>One-Week Client Install &mdash; Template v2.4.1</h2>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:16px">Deployment checklist for a new Google Workspace client. Adjust for M365/Power Automate where noted. All hours are working hours; client sign-offs sit on top.</p>
+  </div>
+
+  <div class="card">
+    <ol class="step-list">
+      <li>
+        <div class="day">Day 1 &mdash; Access + Discovery (3h)</div>
+        <div class="task">Get Workspace admin access, audit existing email rules and labels</div>
+        <div class="detail">OAuth consent screen, domain verification, confirm which Gmail account the trigger runs as. For M365: app registration in Entra ID, mail.read + mail.send permissions.</div>
+      </li>
+      <li>
+        <div class="day">Day 2 &mdash; Deploy + Configure (4h)</div>
+        <div class="task">Deploy Apps Script project, configure Claude API key, set up triggers</div>
+        <div class="detail">Time-driven trigger every 5 minutes. Set extraction prompt to match the client's vocabulary. Test against 20 recent emails from their inbox. Calibrate confidence threshold.</div>
+      </li>
+      <li>
+        <div class="day">Day 3 &mdash; Calibrate (3h)</div>
+        <div class="task">Review first 24h of extractions, tune prompt, add client-specific terms</div>
+        <div class="detail">Expected: 60-70% accuracy on first pass. Adjust for their specific commitment language ("I'll get back to you" vs "we need to file by"). Set up the forwarding address for off-system commitments.</div>
+      </li>
+      <li>
+        <div class="day">Day 4 &mdash; Onboarding (2h)</div>
+        <div class="task">Team training: where tasks appear, how to log off-system commitments</div>
+        <div class="detail">15-minute walkthrough with the team. Show them the forwarding rule (5 seconds to learn), the weekly review prompt, and where overdue items surface. Record a Loom for anyone who misses it.</div>
+      </li>
+      <li>
+        <div class="day">Day 5 &mdash; Verify + Handoff (3h)</div>
+        <div class="task">Run full extraction audit, deploy watchdog, document the install</div>
+        <div class="detail">Compare system-extracted commitments against manually identified ones from the week. Target: 85%+ recall. Write the install back into the template. Hand off the health dashboard credentials.</div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Post-Install Maintenance</h2>
+    <div class="scroll">
+    <table>
+      <tr><th>Cadence</th><th>Task</th><th>Time</th></tr>
+      <tr><td>Daily</td><td class="mono">Check watchdog alerts, review zero-extraction flags</td><td class="mono">10 min</td></tr>
+      <tr><td>Weekly</td><td class="mono">Review extraction accuracy sample (10 random threads)</td><td class="mono">30 min</td></tr>
+      <tr><td>Monthly</td><td class="mono">OAuth token health check across all clients</td><td class="mono">1h</td></tr>
+      <tr><td>Per release</td><td class="mono">Template update: test, deploy to 1 client, roll out</td><td class="mono">2-4h</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px;padding:12px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--fg3)">
+  Worked-example data. Client names, thread IDs and commitment details are illustrative. Built for this application.
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('[id^="tab-"]').forEach(function(el) { el.hidden = true; });
+  document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById('tab-' + id).hidden = false;
+  var tabs = document.querySelectorAll('.tab');
+  var names = ['triage','commits','breaks','health','install'];
+  for (var i = 0; i < names.length; i++) {
+    if (names[i] === id) tabs[i].classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>
